@@ -7,6 +7,7 @@ DESTDIR =
 bindir = $(PREFIX)/bin
 
 CFLAGS ?= -g -O2
+CFLAGS += -pthread
 CFLAGS += -Wall -Wextra
 
 .PHONY: all

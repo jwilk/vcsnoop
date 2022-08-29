@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <poll.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,6 +81,40 @@ static void init_tty(int fd)
     atexit(restore_tty);
 }
 
+static void* rw_thread(void *arg)
+{
+    int fd = (intptr_t) arg;
+    bool empty = true;
+    char buf[PIPE_BUF];
+    while (1) {
+        struct pollfd pfd = { .fd = fd, .events = POLLIN };
+        int rc = poll(&pfd, 1, 1000);
+        if (rc < 0)
+            xerror("poll()");
+        if (rc == 0) {
+            if (empty) {
+                errno = ETIME;
+                xerror("poll()");
+            }
+            break;
+        }
+        ssize_t n = read(fd, buf, sizeof buf);
+        if (n == 0)
+            break;
+        if (n < 0)
+            xerror("read()");
+        empty = false;
+        ssize_t m = write(STDOUT_FILENO, buf, n);
+        if (m < 0)
+            xerror("write()");
+        if (m != n) {
+            errno = EIO;
+            xerror("write()");
+        }
+    }
+    exit(0);
+}
+
 static void snoop(unsigned int n)
 {
     int fd = open("/dev/tty", O_RDWR);
@@ -106,39 +141,18 @@ static void snoop(unsigned int n)
     if (rc < 0)
         xerror("TIOCL_SETSEL");
     chvt(fd, orig_vt);
+    pthread_t pt;
+    rc = pthread_create(&pt, NULL, rw_thread, (void*) (intptr_t) fd);
+    if (rc < 0)
+        xerror("pthread_create()");
     init_tty(fd); /* turn off ECHO */
     sel_op.subcode = TIOCL_PASTESEL;
     rc = ioctl(0, TIOCLINUX, &sel_op.subcode);
     if (rc < 0)
         xerror("TIOCL_PASTESEL");
-    bool empty = true;
-    char buf[PIPE_BUF];
-    while (1) {
-        struct pollfd pfd = { .fd = fd, .events = POLLIN };
-        rc = poll(&pfd, 1, 1000);
-        if (rc < 0)
-            xerror("poll()");
-        if (rc == 0) {
-            if (empty) {
-                errno = ETIME;
-                xerror("poll()");
-            }
-            break;
-        }
-        ssize_t n = read(fd, buf, sizeof buf);
-        if (n == 0)
-            break;
-        if (n < 0)
-            xerror("read()");
-        empty = false;
-        ssize_t m = write(STDOUT_FILENO, buf, n);
-        if (m < 0)
-            xerror("write()");
-        if (m != n) {
-            errno = EIO;
-            xerror("write()");
-        }
-    }
+    rc = pthread_join(pt, NULL);
+    if (rc < 0)
+        xerror("pthread_join()");
 }
 
 int main(int argc, char **argv)
