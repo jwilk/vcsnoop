@@ -86,6 +86,7 @@ static void* rw_thread(void *arg)
     int fd = (intptr_t) arg;
     bool empty = true;
     char buf[PIPE_BUF];
+    int write_error = 0;
     while (1) {
         struct pollfd pfd = { .fd = fd, .events = POLLIN };
         int rc = poll(&pfd, 1, 1000);
@@ -104,13 +105,18 @@ static void* rw_thread(void *arg)
         if (n < 0)
             xerror("read()");
         empty = false;
-        ssize_t m = write(STDOUT_FILENO, buf, n);
-        if (m < 0)
-            xerror("write()");
-        if (m != n) {
-            errno = EIO;
-            xerror("write()");
+        if (!write_error) {
+            ssize_t m = write(STDOUT_FILENO, buf, n);
+            if (m < 0)
+                write_error = errno;
+            else if (m != n) {
+                write_error = EIO;
+            }
         }
+    }
+    if (write_error) {
+        errno = write_error;
+        xerror("write()");
     }
     exit(0);
 }
