@@ -118,7 +118,7 @@ static void* rw_thread(void *arg)
         errno = write_error;
         xerror("write()");
     }
-    exit(0);
+    return NULL;
 }
 
 static void snoop(unsigned int n)
