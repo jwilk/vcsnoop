@@ -1,0 +1,16 @@
+.. code:: console
+
+   $ tty
+   /dev/tty2
+
+   $ screendump 1
+   /dev/tty1: Permission denied
+   screendump: Couldn't read /dev/vcsa1
+
+   $ vcsnoop /dev/tty1 | head -n 4
+   
+   Debian GNU/Linux bookworm/sid debian tty1
+   
+   debian login:
+
+.. vim:ft=rst ts=3 sts=3 sw=3 et
