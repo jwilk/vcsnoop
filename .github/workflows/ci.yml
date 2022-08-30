@@ -32,5 +32,10 @@ jobs:
       run: |
         sudo apt-get install cppcheck
         cppcheck --error-exitcode=1 *.c
+    - name: check README syntax
+      if: startsWith(matrix.os, 'ubuntu-2')
+      run: |
+        python3 -m pip install restructuredtext-lint pygments
+        rst-lint --level=info --encoding=UTF-8 README
 
 # vim:ts=2 sts=2 sw=2 et
