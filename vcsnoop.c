@@ -8,6 +8,7 @@
 #include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -114,7 +115,9 @@ static void* rw_thread(void *arg)
             }
         }
     }
-    if (write_error) {
+    if (write_error == EPIPE) {
+        kill(0, SIGPIPE);
+    } else if (write_error) {
         errno = write_error;
         xerror("write()");
     }
@@ -147,6 +150,10 @@ static void snoop(unsigned int n)
     if (rc < 0)
         xerror("TIOCL_SETSEL");
     chvt(fd, orig_vt);
+    sigset_t sig_mask;
+    sigfillset(&sig_mask);
+    sigaddset(&sig_mask, SIGPIPE);
+    sigprocmask(SIG_BLOCK, &sig_mask, NULL);
     pthread_t pt;
     rc = pthread_create(&pt, NULL, rw_thread, (void*) (intptr_t) fd);
     if (rc < 0)
@@ -159,6 +166,7 @@ static void snoop(unsigned int n)
     rc = pthread_join(pt, NULL);
     if (rc < 0)
         xerror("pthread_join()");
+    sigprocmask(SIG_UNBLOCK, &sig_mask, NULL);
 }
 
 int main(int argc, char **argv)
