@@ -65,6 +65,7 @@ static void restore_tty()
     int rc = tcsetattr(tty_fd, TCSAFLUSH, &orig_tio);
     if (rc < 0)
         xerror("tcsetattr()");
+    tty_fd = -1;
 }
 
 static void init_tty(int fd)
@@ -166,6 +167,7 @@ static void snoop(unsigned int n)
     rc = pthread_join(pt, NULL);
     if (rc < 0)
         xerror("pthread_join()");
+    restore_tty();
     sigprocmask(SIG_UNBLOCK, &sig_mask, NULL);
 }
 
