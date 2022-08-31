@@ -18,6 +18,7 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include <linux/major.h>
 #include <linux/tiocl.h>
 #include <linux/vt.h>
 
@@ -202,7 +203,7 @@ int main(int argc, char **argv)
         xerror(path);
     if ((sb.st_mode & S_IFMT) != S_IFCHR)
         goto baddev;
-    if (major(sb.st_rdev) != 4)
+    if (major(sb.st_rdev) != TTY_MAJOR)
         goto baddev;
     unsigned int sb_minor = minor(sb.st_rdev);
     if ((sb_minor < MIN_NR_CONSOLES) || (sb_minor > MAX_NR_CONSOLES))
