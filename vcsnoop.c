@@ -32,7 +32,7 @@ static void show_usage(FILE *fp)
     fprintf(fp,
         "\n"
         "Options:\n"
-        "  -h, --help  display this help and exit\n"
+        "  -h, --help  show this help message and exit\n"
     );
 }
 
