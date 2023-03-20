@@ -112,14 +112,13 @@ static void* rw_thread(void *arg)
             ssize_t m = write(STDOUT_FILENO, buf, n);
             if (m < 0)
                 write_error = errno;
-            else if (m != n) {
+            else if (m != n)
                 write_error = EIO;
-            }
         }
     }
-    if (write_error == EPIPE) {
+    if (write_error == EPIPE)
         kill(0, SIGPIPE);
-    } else if (write_error) {
+    else if (write_error) {
         errno = write_error;
         xerror("write()");
     }
