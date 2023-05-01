@@ -57,7 +57,7 @@ static void chvt(int fd, unsigned int n)
 }
 
 static int tty_fd = -1;
-struct termios orig_tio;
+static struct termios orig_tio;
 
 static void restore_tty()
 {
