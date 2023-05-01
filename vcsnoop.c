@@ -143,9 +143,9 @@ static void snoop(unsigned int n)
     } sel_op;
     sel_op.subcode = TIOCL_SETSEL;
     sel_op.sel.xs = 1;
-    sel_op.sel.xe = -1;
+    sel_op.sel.xe = SHRT_MAX;
     sel_op.sel.ys = 1;
-    sel_op.sel.ye = -1;
+    sel_op.sel.ye = SHRT_MAX;
     sel_op.sel.sel_mode = TIOCL_SELLINE;
     rc = ioctl(0, TIOCLINUX, &sel_op.subcode);
     if (rc < 0)
