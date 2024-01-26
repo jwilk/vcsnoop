@@ -14,7 +14,7 @@ jobs:
         - clang
     runs-on: ${{matrix.os}}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: check C compiler version
       run:
         ${{matrix.cc}} --version
